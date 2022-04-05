@@ -48,6 +48,7 @@
 		<module>extensions/soaps</module>
 		<module>extensions/sodeps</module>
 		<module>extensions/xmlrpc</module>
+		<module>extensions/amqp</module>
 		<module>tools/jolie2java</module>
 		<module>tools/jolie2plasma</module>
 		<module>tools/jolie2surface</module>
