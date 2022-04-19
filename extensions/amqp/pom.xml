@@ -28,8 +28,8 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <X-JOLIE-ChannelExtension>amqp:jolie.net.LocalSocketCommChannelFactory</X-JOLIE-ChannelExtension>
-                            <X-JOLIE-ListenerExtension>amqp:jolie.net.LocalSocketListenerFactory</X-JOLIE-ListenerExtension>
+                            <X-JOLIE-ChannelExtension>amqp:jolie.net.AmqpCommChannelFactory</X-JOLIE-ChannelExtension>
+                            <X-JOLIE-ListenerExtension>amqp:jolie.net.AmqpListenerFactory</X-JOLIE-ListenerExtension>
                         </manifestEntries>
                     </archive>
                 </configuration>
