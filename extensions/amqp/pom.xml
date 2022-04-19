@@ -58,6 +58,25 @@
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.rabbitmq</groupId>
+                                    <artifactId>amqp-client</artifactId>
+                                    <version>5.14.2</version>
+                                    <type>jar</type>
+                                    <destFileName>rabbitmq-client.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
@@ -77,6 +96,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>jolie-xml</artifactId>
             <version>${jolie.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>sodep</artifactId>
+            <version>${jolie.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>

@@ -13,7 +13,7 @@ import jolie.runtime.AndJarDeps;
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
  */
-@AndJarDeps( { "rabbitmq-client.jar" } )
+@AndJarDeps( { "rabbitmq-client.jar", "slf4j-api.jar" } )
 public class AmqpCommListenerFactory extends CommListenerFactory {
 	public AmqpCommListenerFactory( CommCore commCore ) {
 		super( commCore );
