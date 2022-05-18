@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2022 by Balint Maschio <bmaschio77@gmail.com            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,26 +19,39 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+type Order:void{
+    id:string
+    ammount:double
+}
 
-package jolie.lang.parse.context;
+type GetOrderRequest:void{
+    token:string
+    id:string
+}
 
-import jolie.lang.Constants;
+type GetOrderResponse:Order
 
-/**
- * Skeleton class provided for implementing {@link ParsingContext}.
- * 
- * @author Fabrizio Montesi
- */
-public abstract class AbstractParsingContext implements ParsingContext {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	private final int line;
+type GetOrdersRequest:void{
+    token:string
+}
 
-	public AbstractParsingContext( int line ) {
-		this.line = line;
-	}
+type GetOrdersResponse:void{
+    orders*: Order
+}
 
-	@Override
-	public int line() {
-		return line;
-	}
+type AddOrderRequest:void{
+    token:string
+    ammount:double
+}
+
+type AddOrderResponse:void
+
+
+interface HttpTemplateInterface{
+    RequestResponse:
+
+    getOrders(GetOrdersRequest)(GetOrdersResponse),
+    getOrder(GetOrderRequest)( GetOrderResponse),
+    addOrder(AddOrderRequest)(AddOrderResponse),
+
 }
