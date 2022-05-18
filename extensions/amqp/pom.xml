@@ -29,7 +29,7 @@
                     <archive>
                         <manifestEntries>
                             <X-JOLIE-ChannelExtension>amqp:jolie.net.AmqpCommChannelFactory</X-JOLIE-ChannelExtension>
-                            <X-JOLIE-ListenerExtension>amqp:jolie.net.AmqpListenerFactory</X-JOLIE-ListenerExtension>
+                            <X-JOLIE-ListenerExtension>amqp:jolie.net.AmqpCommListenerFactory</X-JOLIE-ListenerExtension>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -53,6 +53,13 @@
                                     <version>${jolie.version}</version>
                                     <type>jar</type>
                                     <destFileName>${project.artifactId}.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.slf4j</groupId>
+                                    <artifactId>slf4j-simple</artifactId>
+                                    <version>1.7.36</version>
+                                    <type>jar</type>
+                                    <destFileName>slf4j-simple.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>

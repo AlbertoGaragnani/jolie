@@ -136,6 +136,12 @@ public final class AmqpConnection {
 			String value = split.length >= 2 ? param.split( "=" )[ 1 ] : null;
 			map.put( name, value );
 		}
+
+		//Following code allows to use default exchange ("") if exchange in location is specified like 'exchange='
+		if(map.containsKey( "exchange" )) {
+			if( map.get( "exchange" ) == null )
+				map.put( "exchange", "" );
+		}
 		return map;
 	}
 }
