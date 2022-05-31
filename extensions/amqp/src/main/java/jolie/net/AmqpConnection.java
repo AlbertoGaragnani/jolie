@@ -137,8 +137,9 @@ public final class AmqpConnection {
 			map.put( name, value );
 		}
 
-		//Following code allows to use default exchange ("") if exchange in location is specified like 'exchange='
-		if(map.containsKey( "exchange" )) {
+		// Following code allows to use default exchange ("") if exchange in location is specified like
+		// 'exchange='
+		if( map.containsKey( "exchange" ) ) {
 			if( map.get( "exchange" ) == null )
 				map.put( "exchange", "" );
 		}

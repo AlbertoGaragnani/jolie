@@ -51,6 +51,13 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		routingKey = locationParams().get( "routingkey" );
 		routingKey = routingKey != null ? routingKey : "";
 
+		if( exchName != null ) {
+			// Declare the auto-delete exchange and bind it to the queue only if we're not using the default one
+			if( !exchName.equals( "" ) ) {
+				channel().exchangeDeclare( exchName, "direct", false, true, false, null );
+				channel().queueBind( queueName, exchName, routingKey );
+			}
+		}
 		setToBeClosed( false );
 	}
 
