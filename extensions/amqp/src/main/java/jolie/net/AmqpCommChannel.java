@@ -83,6 +83,7 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		// Otherwise we just have a message, data is not present.
 		// This would come from sendImpl below, and only if we are an OutputPort.
 		if( message != null ) {
+			System.out.println( message.requestId() );
 			returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
 			message = null;
 			return returnMessage;
@@ -122,7 +123,9 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 				}
 			} else {
 				// Else we just publish normally.
+				System.out.println( message.requestId() );
 				channel().basicPublish( exchName, routingKey, null, ostream.toByteArray() );
+				// Salva l'ack nella lista
 			}
 		}
 
@@ -136,6 +139,7 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 			}
 			// Acknowledge that message has been processed.
 			acknowledge( dataToProcess.envelope.getDeliveryTag() );
+			dataToProcess = null;
 		}
 
 		// If we end up here, parentPort is neither an InputPort or an OutputPort, something is wrong.

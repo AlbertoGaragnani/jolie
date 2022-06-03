@@ -23,7 +23,7 @@ public class AmqpCommListener extends CommListener {
 
 	private final String queue;
 	private final String consumerTag;
-	private final Object lock = new Object();
+	private final AmqpCommChannel amqpCommChannel;
 
 	/**
 	 * @param interpreter The interpreter.
@@ -50,38 +50,32 @@ public class AmqpCommListener extends CommListener {
 
 		final CommProtocol protocol = createProtocol();
 
-		// Consume from queue.
-		channel().basicConsume( queue, false, consumerTag,
-			new DefaultConsumer( channel() ) {
-				@Override
-				public void handleDelivery( String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
-					byte[] body ) throws IOException {
-					AmqpMessage message = new AmqpMessage( envelope, body, properties );
+		// Create channel for receive implementation.
+		amqpCommChannel = new AmqpCommChannel( inputPort.location(), protocol );
+		amqpCommChannel.setParentInputPort( inputPort );
 
-					// Create channel for receive implementation.
-					AmqpCommChannel commChannel = new AmqpCommChannel( inputPort.location(), protocol );
-					commChannel.setParentInputPort( inputPort );
-					commChannel.setDataToProcess( message );
-
-					// Receive.
-					interpreter().commCore().scheduleReceive( commChannel, inputPort() );
-				}
-			} );
 	}
 
 	@Override
 	public void run() {
-		while( true ) {
-			try {
-				// This thread should do nothing.
-				synchronized( lock ) {
-					while( true ) {
-						lock.wait();
+		try {
+			// Consume from queue.
+			channel().basicConsume( queue, false, consumerTag,
+				new DefaultConsumer( channel() ) {
+					@Override
+					public void handleDelivery( String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+						byte[] body ) throws IOException {
+						AmqpMessage message = new AmqpMessage( envelope, body, properties );
+
+						// Set the message
+						amqpCommChannel.setDataToProcess( message );
+
+						// Receive.
+						interpreter().commCore().scheduleReceive( amqpCommChannel, inputPort() );
 					}
-				}
-			} catch( InterruptedException ex ) {
-				Logger.getLogger( AmqpCommListener.class.getName() ).log( Level.SEVERE, null, ex );
-			}
+				} );
+		} catch( IOException e ) {
+			throw new RuntimeException( e );
 		}
 	}
 
