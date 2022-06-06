@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
@@ -23,6 +25,8 @@ import jolie.net.ports.InputPort;
 public final class AmqpCommChannel extends StreamingCommChannel {
 
 	// General.
+
+	private static List< Integer > ids = new ArrayList<>();
 	private final URI location;
 
 	// For use in InputPort only.
@@ -77,13 +81,18 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		// This would come from the AmqpListener class, and should only be if we are an InputPort.
 		if( dataToProcess != null ) {
 			returnMessage = protocol().recv( new ByteArrayInputStream( dataToProcess.body ), ostream );
+			System.out.println( "Sono nella recvImpl del server, messageID = " + returnMessage.requestId() );
+			System.out.println( "Lista:" );
+			for( int i : AmqpCommChannel.ids ) {
+				System.out.println( i );
+			}
 			return returnMessage;
 		}
 
 		// Otherwise we just have a message, data is not present.
 		// This would come from sendImpl below, and only if we are an OutputPort.
 		if( message != null ) {
-			System.out.println( message.requestId() );
+			//Qua serve il check sulla lista
 			returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
 			message = null;
 			return returnMessage;
@@ -123,9 +132,10 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 				}
 			} else {
 				// Else we just publish normally.
-				System.out.println( message.requestId() );
 				channel().basicPublish( exchName, routingKey, null, ostream.toByteArray() );
 				// Salva l'ack nella lista
+				AmqpCommChannel.ids.add( (int) message.requestId() );
+				System.out.println( "Ho fatto la add, listSize = " + AmqpCommChannel.ids.size() );
 			}
 		}
 
