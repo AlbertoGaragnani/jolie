@@ -5,8 +5,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
@@ -26,7 +27,7 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 
 	// General.
 
-	private static List< Integer > ids = new ArrayList<>();
+	private final Map< Long, Boolean > acks = new HashMap<>();
 	private final URI location;
 
 	// For use in InputPort only.
@@ -82,20 +83,20 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		if( dataToProcess != null ) {
 			returnMessage = protocol().recv( new ByteArrayInputStream( dataToProcess.body ), ostream );
 			System.out.println( "Sono nella recvImpl del server, messageID = " + returnMessage.requestId() );
-			System.out.println( "Lista:" );
-			for( int i : AmqpCommChannel.ids ) {
-				System.out.println( i );
-			}
 			return returnMessage;
 		}
 
 		// Otherwise we just have a message, data is not present.
 		// This would come from sendImpl below, and only if we are an OutputPort.
 		if( message != null ) {
-			//Qua serve il check sulla lista
-			returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
-			message = null;
-			return returnMessage;
+
+			// Check on acks' list
+			if( this.acks.get( message.requestId() ) ) {
+				returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
+				this.acks.remove( message.requestId() );
+				message = null;
+				return returnMessage;
+			}
 		}
 
 		// If we end up here, something is wrong.
@@ -133,9 +134,9 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 			} else {
 				// Else we just publish normally.
 				channel().basicPublish( exchName, routingKey, null, ostream.toByteArray() );
-				// Salva l'ack nella lista
-				AmqpCommChannel.ids.add( (int) message.requestId() );
-				System.out.println( "Ho fatto la add, listSize = " + AmqpCommChannel.ids.size() );
+
+				// Save the requestId on acks' map
+				acks.put( this.message.requestId(), true );
 			}
 		}
 
@@ -176,6 +177,10 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	 */
 	public void setDataToProcess( AmqpMessage message ) {
 		this.dataToProcess = message;
+	}
+
+	public AmqpMessage getDataToProcess() {
+		return this.dataToProcess;
 	}
 
 	/**

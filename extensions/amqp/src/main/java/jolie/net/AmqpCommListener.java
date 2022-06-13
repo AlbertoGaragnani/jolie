@@ -65,9 +65,14 @@ public class AmqpCommListener extends CommListener {
 					@Override
 					public void handleDelivery( String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
 						byte[] body ) throws IOException {
+
 						AmqpMessage message = new AmqpMessage( envelope, body, properties );
 
 						// Set the message
+						//Metti un semaforo
+						while( amqpCommChannel.getDataToProcess() != null ) {
+							System.out.println( "" );
+						}
 						amqpCommChannel.setDataToProcess( message );
 
 						// Receive.
@@ -119,6 +124,7 @@ public class AmqpCommListener extends CommListener {
 	 * @throws IOException
 	 */
 	public final AmqpConnection connection() throws IOException {
+		System.out.println( "Setting connections..." );
 		return AmqpConnectionHandler.getConnection( inputPort().location() );
 	}
 

@@ -47,7 +47,11 @@ public class AmqpConnectionHandler {
 	 * @throws IOException
 	 */
 	public static void closeConnection( URI location ) throws IOException {
-		CONNECTIONS.get( location ).close();
-		CONNECTIONS.remove( location );
+		System.out.println( "Trying to remove" );
+		// If the .get returns null it means the connection has already been closed
+		if( CONNECTIONS.get( location ) != null ) {
+			CONNECTIONS.get( location ).close();
+			CONNECTIONS.remove( location );
+		}
 	}
 }

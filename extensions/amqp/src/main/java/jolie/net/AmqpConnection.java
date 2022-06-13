@@ -58,6 +58,7 @@ public final class AmqpConnection {
 
 		// Create the channel.
 		chan = conn.createChannel();
+		System.out.println( "Setting chan connection" );
 	}
 
 	/**
