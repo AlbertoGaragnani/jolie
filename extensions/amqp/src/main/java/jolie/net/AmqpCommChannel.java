@@ -25,13 +25,11 @@ import jolie.net.ports.InputPort;
 public final class AmqpCommChannel extends StreamingCommChannel {
 
 	// General.
-
 	private final Map< Long, Boolean > acks = new HashMap<>();
 	private final URI location;
 
 	// For use in InputPort only.
-	private ArrayDeque< AmqpMessage > dataToProcess2 = new ArrayDeque<>();
-	private AmqpMessage dataToProcess;
+	private final ArrayDeque< AmqpMessage > dataToProcess = new ArrayDeque<>();
 
 	// For use in OutputPort only.
 	private CommMessage message = null;
@@ -40,6 +38,9 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	String exchName;
 	String queueName;
 	String routingKey;
+
+	// The delivery tag associated with the message we will have to send the RabbitMQ ACK to
+	private long tagToAcknowledge;
 
 	/**
 	 * @param location The location of the channel.
@@ -80,8 +81,10 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 
 		// If we have some data to process.
 		// This would come from the AmqpListener class, and should only be if we are an InputPort.
-		if( dataToProcess != null ) {
-			returnMessage = protocol().recv( new ByteArrayInputStream( dataToProcess.body ), ostream );
+		if( !dataToProcess.isEmpty() ) {
+			AmqpMessage temp = dataToProcess.pop();
+			tagToAcknowledge = temp.envelope.getDeliveryTag();
+			returnMessage = protocol().recv( new ByteArrayInputStream( temp.body ), ostream );
 			return returnMessage;
 		}
 
@@ -129,8 +132,7 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		// If from InputPort. We assume that we have something to send back to caller.
 		else if( parentPort() instanceof InputPort ) {
 			// Acknowledge that message has been processed.
-			acknowledge( dataToProcess.envelope.getDeliveryTag() );
-			dataToProcess = null;
+			acknowledge( tagToAcknowledge );
 		}
 
 		// If we end up here, parentPort is neither an InputPort or an OutputPort, something is wrong.
@@ -150,16 +152,16 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	}
 
 	/**
-	 * Set the message that should be processed by this channel. This is called from AmqpListener when
-	 * it receives data.
+	 * Add the message that should be processed by this channel to the queue. This is called from
+	 * AmqpListener when it receives data.
 	 * 
 	 * @param message The message that should be processed by this channel.
 	 */
-	public void setDataToProcess( AmqpMessage message ) {
-		this.dataToProcess = message;
+	public void addDataToProcess( AmqpMessage message ) {
+		this.dataToProcess.add( message );
 	}
 
-	public AmqpMessage getDataToProcess() {
+	public ArrayDeque< AmqpMessage > getDataToProcess() {
 		return this.dataToProcess;
 	}
 
@@ -170,7 +172,6 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	 * @throws IOException
 	 */
 	public void acknowledge( long deliveryTag ) throws IOException {
-		// Don't know why 2nd parameter is false, and API is no help.
 		channel().basicAck( deliveryTag, false );
 	}
 

@@ -69,12 +69,8 @@ public class AmqpCommListener extends CommListener {
 
 						AmqpMessage message = new AmqpMessage( envelope, body, properties );
 
-						// Set the message
-						// Metti un semaforo
-						while( amqpCommChannel.getDataToProcess() != null ) {
-							System.out.println( "" );
-						}
-						amqpCommChannel.setDataToProcess( message );
+						// Add the message in the ArrayDeque
+						amqpCommChannel.addDataToProcess( message );
 
 						// Receive.
 						interpreter().commCore().scheduleReceive( amqpCommChannel, inputPort() );
