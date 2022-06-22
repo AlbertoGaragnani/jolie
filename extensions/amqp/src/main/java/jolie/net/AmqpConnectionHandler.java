@@ -10,6 +10,7 @@ import java.util.Map;
  * 
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 public class AmqpConnectionHandler {
 	private static final Map< URI, AmqpConnection > CONNECTIONS = new HashMap();

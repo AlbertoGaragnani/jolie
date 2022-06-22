@@ -7,14 +7,12 @@ import java.io.IOException;
 import java.net.URI;
 //import java.util.ArrayList;
 //import java.util.List;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.Value;
-import com.rabbitmq.client.RpcClient;
-import com.rabbitmq.client.ShutdownSignalException;
-import java.util.concurrent.TimeoutException;
 import jolie.net.ports.InputPort;
 
 /**
@@ -22,6 +20,7 @@ import jolie.net.ports.InputPort;
  * 
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 public final class AmqpCommChannel extends StreamingCommChannel {
 
@@ -31,6 +30,7 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	private final URI location;
 
 	// For use in InputPort only.
+	private ArrayDeque< AmqpMessage > dataToProcess2 = new ArrayDeque<>();
 	private AmqpMessage dataToProcess;
 
 	// For use in OutputPort only.
@@ -82,7 +82,6 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 		// This would come from the AmqpListener class, and should only be if we are an InputPort.
 		if( dataToProcess != null ) {
 			returnMessage = protocol().recv( new ByteArrayInputStream( dataToProcess.body ), ostream );
-			System.out.println( "Sono nella recvImpl del server, messageID = " + returnMessage.requestId() );
 			return returnMessage;
 		}
 
@@ -120,34 +119,15 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 
 		// If from OutputPort.
 		if( parentPort() instanceof OutputPort ) {
+			// We just publish normally.
+			channel().basicPublish( exchName, routingKey, null, ostream.toByteArray() );
 
-			// Check if this is an RPC call.
-			boolean isRpc = parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
-				.asRequestResponseTypeDescription() != null;
-			if( isRpc ) {
-				// Send the call, getting bytearray back.
-				try {
-					dataToProcess = new AmqpMessage( null, rpcClient().primitiveCall( ostream.toByteArray() ), null );
-				} catch( ShutdownSignalException | TimeoutException ex ) {
-					throw new IOException( "Timeout for RPC call", ex );
-				}
-			} else {
-				// Else we just publish normally.
-				channel().basicPublish( exchName, routingKey, null, ostream.toByteArray() );
-
-				// Save the requestId on acks' map
-				acks.put( this.message.requestId(), true );
-			}
+			// Save the requestId on acks' map
+			acks.put( this.message.requestId(), true );
 		}
 
 		// If from InputPort. We assume that we have something to send back to caller.
 		else if( parentPort() instanceof InputPort ) {
-			// If we have a reply-to queue, this is an RPC-call.
-			if( dataToProcess.properties.getReplyTo() != null ) {
-				// Publish to reply-to queue.
-				channel().basicPublish( "", dataToProcess.properties.getReplyTo(), dataToProcess.properties,
-					ostream.toByteArray() );
-			}
 			// Acknowledge that message has been processed.
 			acknowledge( dataToProcess.envelope.getDeliveryTag() );
 			dataToProcess = null;
@@ -202,16 +182,6 @@ public final class AmqpCommChannel extends StreamingCommChannel {
 	 */
 	public Channel channel() throws IOException {
 		return AmqpConnectionHandler.getConnection( location ).getChannel();
-	}
-
-	/**
-	 * Get the Amqp RPC client for the queue.
-	 * 
-	 * @return The RPC client for the queue of the Amqp connection.
-	 * @throws IOException
-	 */
-	public RpcClient rpcClient() throws IOException {
-		return AmqpConnectionHandler.getConnection( location ).getRpcClient( queueName );
 	}
 
 	/**

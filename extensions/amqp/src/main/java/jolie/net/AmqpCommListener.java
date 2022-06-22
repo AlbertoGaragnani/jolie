@@ -18,6 +18,7 @@ import jolie.net.protocols.CommProtocol;
  *
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 public class AmqpCommListener extends CommListener {
 
@@ -69,7 +70,7 @@ public class AmqpCommListener extends CommListener {
 						AmqpMessage message = new AmqpMessage( envelope, body, properties );
 
 						// Set the message
-						//Metti un semaforo
+						// Metti un semaforo
 						while( amqpCommChannel.getDataToProcess() != null ) {
 							System.out.println( "" );
 						}
@@ -124,7 +125,6 @@ public class AmqpCommListener extends CommListener {
 	 * @throws IOException
 	 */
 	public final AmqpConnection connection() throws IOException {
-		System.out.println( "Setting connections..." );
 		return AmqpConnectionHandler.getConnection( inputPort().location() );
 	}
 

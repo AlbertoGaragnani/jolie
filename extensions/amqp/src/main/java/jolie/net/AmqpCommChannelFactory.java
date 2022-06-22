@@ -12,6 +12,7 @@ import jolie.runtime.AndJarDeps;
  * 
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 @AndJarDeps( { "rabbitmq-client.jar", "slf4j-api.jar" } )
 public class AmqpCommChannelFactory extends CommChannelFactory {

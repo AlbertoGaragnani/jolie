@@ -3,7 +3,6 @@ package jolie.net;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.RpcClient;
 import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;
 import java.net.URI;
@@ -16,9 +15,10 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Class for handling a connection.
- * 
+ *
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 public final class AmqpConnection {
 	private Connection conn;
@@ -26,7 +26,6 @@ public final class AmqpConnection {
 
 	private final URI location;
 	private Map< String, String > locationParams;
-	private final Map< String, RpcClient > rpcs = new HashMap();
 
 	public AmqpConnection( URI location ) throws IOException {
 		this.location = location;
@@ -58,7 +57,6 @@ public final class AmqpConnection {
 
 		// Create the channel.
 		chan = conn.createChannel();
-		System.out.println( "Setting chan connection" );
 	}
 
 	/**
@@ -106,20 +104,6 @@ public final class AmqpConnection {
 			conn.close();
 		} catch( ShutdownSignalException | TimeoutException e ) {
 		}
-	}
-
-	/**
-	 * Get the RPC client for the queue on this connection. If not already initialized, do it.
-	 * 
-	 * @param queueName The name of the queue for the client.
-	 * @return The RpcClient object.
-	 * @throws IOException
-	 */
-	public RpcClient getRpcClient( String queueName ) throws IOException {
-		if( rpcs.get( queueName ) == null ) {
-			rpcs.put( queueName, new RpcClient( chan, "", queueName ) );
-		}
-		return this.rpcs.get( queueName );
 	}
 
 	/**

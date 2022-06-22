@@ -8,6 +8,7 @@ import com.rabbitmq.client.Envelope;
  * 
  * @author Claus Lindquist Henriksen (clih@itu.dk).
  * @author Michael Søby Andersen (msoa@itu.dk).
+ * @author Alberto Garagnani (garagnanialberto@gmail.com)
  */
 public class AmqpMessage {
 	public byte[] body;
